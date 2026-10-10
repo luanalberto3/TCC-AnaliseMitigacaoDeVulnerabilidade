@@ -1,0 +1,21 @@
+services:
+  dvwa:
+    image: vulnerables/web-dvwa:latest
+    container_name: tcc-dvwa
+    ports:
+      - "8080:80"
+    environment:
+      # O container disponibiliza Apache, PHP e MariaDB apenas para o laboratório.
+      # Nunca publique esta porta em uma rede externa.
+      MYSQL_USER: dvwa
+      MYSQL_PASSWORD: dvwa
+      MYSQL_DATABASE: dvwa
+    volumes:
+      - ./config/php.ini:/usr/local/etc/php/conf.d/99-tcc.ini:ro
+    restart: unless-stopped
+    networks:
+      - laboratorio
+
+networks:
+  laboratorio:
+    driver: bridge
