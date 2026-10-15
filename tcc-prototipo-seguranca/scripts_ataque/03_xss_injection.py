@@ -1,42 +1,36 @@
-"""Validação controlada de XSS refletido em uma instância DVWA local."""
-import json
-import os
+"""Compara XSS refletido no DVWA vulnerável e no ambiente protegido local."""
 import time
-from pathlib import Path
-from urllib.parse import urlparse
 
 import requests
 
-URL = os.getenv("DVWA_XSS_URL", "http://localhost:8080/vulnerabilities/xss_r/")
-SESSION_ID = os.getenv("DVWA_PHPSESSID", "")
+from common import (dvwa_cookies, dvwa_url, local_url, new_result, print_and_save,
+                    profile_args, protected_base_url, selected_profiles)
+
 PAYLOAD = "<script>alert('XSS_Vulnerability')</script>"
 
 
-def only_local(url: str) -> None:
-    if urlparse(url).hostname not in {"localhost", "127.0.0.1", "::1"}:
-        raise ValueError("Este script aceita somente URLs locais do laboratório.")
+def run_vulnerable() -> dict:
+    started = time.perf_counter()
+    response = requests.get(dvwa_url("DVWA_XSS_URL", "/vulnerabilities/xss_r/"), params={"name": PAYLOAD}, cookies=dvwa_cookies(), timeout=10)
+    injected = PAYLOAD in response.text
+    return new_result(profile="vulneravel", attack="xss_refletido", success=injected, attempts=1, elapsed=time.perf_counter() - started, status_code=response.status_code, outcome="payload_refletido_sem_codificacao" if injected else "payload_sem_efeito")
 
 
-def save_result(data: dict) -> None:
-    report = Path(__file__).parents[1] / "resultados" / "relatorio_testes.json"
-    entries = json.loads(report.read_text(encoding="utf-8")) if report.exists() else []
-    entries.append(data)
-    report.write_text(json.dumps(entries, ensure_ascii=False, indent=2), encoding="utf-8")
+def run_protected() -> dict:
+    started = time.perf_counter()
+    response = requests.get(local_url(f"{protected_base_url()}/xss.php"), params={"name": PAYLOAD}, timeout=10)
+    injected = PAYLOAD in response.text
+    return new_result(profile="protegido", attack="xss_refletido", success=injected, attempts=1, elapsed=time.perf_counter() - started, status_code=response.status_code, outcome="payload_refletido_sem_codificacao" if injected else "saida_codificada")
 
 
 def main() -> None:
-    only_local(URL)
-    if not SESSION_ID:
-        raise SystemExit("Defina DVWA_PHPSESSID após autenticar-se no DVWA.")
-    started = time.perf_counter()
-    response = requests.get(URL, params={"name": PAYLOAD},
-                            cookies={"PHPSESSID": SESSION_ID, "security": "low"}, timeout=10)
-    vulnerable = PAYLOAD in response.text
-    result = {"teste": "xss_refletido", "sucesso": vulnerable, "tentativas": 1,
-              "tempo_segundos": round(time.perf_counter() - started, 3),
-              "payload": PAYLOAD}
-    save_result(result)
-    print(json.dumps(result, ensure_ascii=False))
+    args = profile_args(__doc__ or "Teste de XSS")
+    for profile in selected_profiles(args.perfil):
+        try:
+            result = run_vulnerable() if profile == "vulneravel" else run_protected()
+        except (requests.RequestException, ValueError) as error:
+            result = new_result(profile=profile, attack="xss_refletido", success=False, attempts=0, elapsed=0, status_code=None, outcome="erro_de_execucao", erro=str(error))
+        print_and_save(result)
 
 
 if __name__ == "__main__":

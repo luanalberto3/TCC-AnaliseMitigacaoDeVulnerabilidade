@@ -16,6 +16,50 @@ services:
     networks:
       - laboratorio
 
+  # Aplicação criada para demonstrar as correções de forma mensurável.
+  # Ela é independente do DVWA, que permanece como cenário vulnerável.
+  protegido:
+    build:
+      context: ..
+      dockerfile: docker/protected/Dockerfile
+    container_name: tcc-protegido
+    ports:
+      - "8082:80"
+    environment:
+      DB_HOST: banco_protegido
+      DB_NAME: secureapp
+      DB_USER: secureapp
+      DB_PASSWORD: secureapp_local_only
+    depends_on:
+      banco_protegido:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - laboratorio
+
+  banco_protegido:
+    image: mysql:8.4
+    container_name: tcc-banco-protegido
+    environment:
+      MYSQL_DATABASE: secureapp
+      MYSQL_USER: secureapp
+      MYSQL_PASSWORD: secureapp_local_only
+      MYSQL_ROOT_PASSWORD: root_local_only
+    volumes:
+      - protegido_db_data:/var/lib/mysql
+      - ./protected/db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+    networks:
+      - laboratorio
+
 networks:
   laboratorio:
     driver: bridge
+
+volumes:
+  protegido_db_data:

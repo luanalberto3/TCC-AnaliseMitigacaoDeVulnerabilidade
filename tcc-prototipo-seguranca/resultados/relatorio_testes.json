@@ -1,1 +1,155 @@
-[]
+[
+  {
+    "teste": "forca_bruta",
+    "sucesso": false,
+    "tentativas": 5,
+    "tempo_segundos": 0.097,
+    "senha_encontrada": null
+  },
+  {
+    "teste": "sql_injection",
+    "sucesso": false,
+    "tentativas": 1,
+    "tempo_segundos": 0.016,
+    "payload": "' OR '1'='1"
+  },
+  {
+    "teste": "xss_refletido",
+    "sucesso": false,
+    "tentativas": 1,
+    "tempo_segundos": 0.016,
+    "payload": "<script>alert('XSS_Vulnerability')</script>"
+  },
+  {
+    "id_execucao": "d9d00cf7-109b-4cfb-a280-4bb25668dd7f",
+    "data_hora_utc": "2026-10-15T09:16:17.871890+00:00",
+    "perfil": "vulneravel",
+    "ataque": "forca_bruta",
+    "sucesso": true,
+    "tentativas": 7,
+    "tempo_segundos": 0.104,
+    "taxa_tentativas_por_segundo": 67.251,
+    "status_http": 200,
+    "resultado": "credencial_aceita_sem_rate_limit"
+  },
+  {
+    "id_execucao": "553ebcd0-530a-4e9a-a1d1-9fac1a0c3294",
+    "data_hora_utc": "2026-10-15T09:16:18.244659+00:00",
+    "perfil": "protegido",
+    "ataque": "forca_bruta",
+    "sucesso": false,
+    "tentativas": 6,
+    "tempo_segundos": 0.363,
+    "taxa_tentativas_por_segundo": 16.532,
+    "status_http": 429,
+    "resultado": "bloqueado_por_rate_limit"
+  },
+  {
+    "id_execucao": "b8860282-a8de-4210-95ff-acebfc067373",
+    "data_hora_utc": "2026-10-15T09:16:25.123536+00:00",
+    "perfil": "vulneravel",
+    "ataque": "forca_bruta",
+    "sucesso": true,
+    "tentativas": 7,
+    "tempo_segundos": 0.065,
+    "taxa_tentativas_por_segundo": 107.841,
+    "status_http": 200,
+    "resultado": "credencial_aceita_sem_rate_limit"
+  },
+  {
+    "id_execucao": "0daf149d-2060-43f5-853a-1dda8aa96095",
+    "data_hora_utc": "2026-10-15T09:16:25.143991+00:00",
+    "perfil": "protegido",
+    "ataque": "forca_bruta",
+    "sucesso": false,
+    "tentativas": 1,
+    "tempo_segundos": 0.009,
+    "taxa_tentativas_por_segundo": 107.46,
+    "status_http": 429,
+    "resultado": "bloqueado_por_rate_limit"
+  },
+  {
+    "id_execucao": "ee222490-8459-490a-bf5a-7be1fe43e30a",
+    "data_hora_utc": "2026-10-15T09:16:48.739978+00:00",
+    "perfil": "vulneravel",
+    "ataque": "sql_injection",
+    "sucesso": true,
+    "tentativas": 1,
+    "tempo_segundos": 0.018,
+    "taxa_tentativas_por_segundo": 54.835,
+    "status_http": 200,
+    "resultado": "dados_expostos"
+  },
+  {
+    "id_execucao": "c2734650-316e-4769-bad8-115d9a09cf6e",
+    "data_hora_utc": "2026-10-15T09:16:48.768208+00:00",
+    "perfil": "protegido",
+    "ataque": "sql_injection",
+    "sucesso": false,
+    "tentativas": 1,
+    "tempo_segundos": 0.018,
+    "taxa_tentativas_por_segundo": 55.103,
+    "status_http": 200,
+    "resultado": "entrada_rejeitada_por_validacao"
+  },
+  {
+    "id_execucao": "c862726e-0eae-4b1e-b203-5af479d2ab88",
+    "data_hora_utc": "2026-10-15T09:16:55.833548+00:00",
+    "perfil": "vulneravel",
+    "ataque": "xss_refletido",
+    "sucesso": true,
+    "tentativas": 1,
+    "tempo_segundos": 0.017,
+    "taxa_tentativas_por_segundo": 60.39,
+    "status_http": 200,
+    "resultado": "payload_refletido_sem_codificacao"
+  },
+  {
+    "id_execucao": "3d183708-0e75-448a-9779-5d06b4d7b5b4",
+    "data_hora_utc": "2026-10-15T09:16:55.860260+00:00",
+    "perfil": "protegido",
+    "ataque": "xss_refletido",
+    "sucesso": false,
+    "tentativas": 1,
+    "tempo_segundos": 0.015,
+    "taxa_tentativas_por_segundo": 65.221,
+    "status_http": 200,
+    "resultado": "saida_codificada"
+  },
+  {
+    "id_execucao": "0ab6c6d4-3ba7-41b8-a90a-676381d400dc",
+    "data_hora_utc": "2026-10-15T09:17:44.826505+00:00",
+    "perfil": "protegido",
+    "ataque": "forca_bruta",
+    "sucesso": false,
+    "tentativas": 6,
+    "tempo_segundos": 0.302,
+    "taxa_tentativas_por_segundo": 19.854,
+    "status_http": 429,
+    "resultado": "bloqueado_por_rate_limit"
+  },
+  {
+    "id_execucao": "a7ef465f-08fe-4eda-8f6d-e010fdccbb8d",
+    "data_hora_utc": "2026-10-15T09:17:54.903656+00:00",
+    "perfil": "protegido",
+    "ataque": "sql_injection",
+    "sucesso": false,
+    "tentativas": 1,
+    "tempo_segundos": 0.023,
+    "taxa_tentativas_por_segundo": 43.1,
+    "status_http": 200,
+    "resultado": "entrada_rejeitada_por_validacao"
+  },
+  {
+    "id_execucao": "28bdea25-e749-4bb5-998c-335ccfedd03f",
+    "data_hora_utc": "2026-10-15T09:18:03.774416+00:00",
+    "perfil": "protegido",
+    "ataque": "xss_refletido",
+    "sucesso": false,
+    "tentativas": 1,
+    "tempo_segundos": 0.013,
+    "taxa_tentativas_por_segundo": 77.058,
+    "status_http": 200,
+    "resultado": "saida_codificada"
+  }
+]
